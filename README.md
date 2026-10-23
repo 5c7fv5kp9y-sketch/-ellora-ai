@@ -1,27 +1,30 @@
-# ELLORA — ELL AI Classroom (Cloudflare Pages + D1)
+# ELLORA AI V2 — Cloudflare PAGES source package
 
-A responsive full-stack foundation for teacher-controlled ELL classes, Years 6–13. Includes teacher/student email-password login, invitation codes, PPTX text extraction, material storage, OpenAI-generated draft lessons, teacher review/publish, quizzes/homework/exams, submissions, scores, reflections, class scheduling, avatar animation, browser speech and AI chat.
+**IMPORTANT: This ZIP contains the SOURCE files. Do not upload it as one ZIP file to GitHub and expect deployment. Extract it first.**
 
-## Important: deployment steps
-1. Create a Cloudflare Pages project with this folder as the deployment source. For Pages Functions to work, use a Git-connected Pages project or deploy using Wrangler; simply dragging the ZIP to Pages may not deploy Functions.
-2. Create a D1 database in Cloudflare, and run `schema.sql` against it (Cloudflare dashboard D1 console or Wrangler `wrangler d1 execute <database-name> --file=schema.sql --remote`).
-3. In Pages project **Settings → Bindings**, add a D1 binding named **DB** pointing to that database.
-4. In Pages project **Settings → Variables and Secrets**, add **SESSION_SECRET** as a long random secret and **OPENAI_API_KEY** as a secret. Optionally set **OPENAI_MODEL** (defaults to `gpt-4o-mini`; check current API model availability).
-5. Redeploy, open your HTTPS Pages URL, create a teacher account, create a class, join using a separate student account and class code.
-6. Upload a PPTX with selectable slide text or paste source material, generate AI draft, inspect/edit and publish, then create a homework/quiz/exam from it.
+## What works after configuring the backend
+- Responsive teacher/student interface and sign-in with separate roles
+- Teacher-created classes and invitation codes
+- Teacher-uploaded readable text/PPTX materials, AI draft lessons with teacher approval
+- Lessons, tasks, multiple-choice assessment, submissions, reflections, class information, progress views
+- AI chat via server-side OpenAI API, when configured
+- Browser text-to-speech and an animated **illustration** of the requested white/blue robot (not 3D or accurate lip sync)
 
-## Limitations — do not claim these work yet
-- Animated teacher is a **CSS 2D avatar** with approximate mouth motion and browser text-to-speech, not a realistic 3D Memoji or accurate audio lip sync. Voice recognition is browser-dependent and may not work on iPad Safari.
-- PPTX extraction handles selectable text, not scanned slides, embedded images, videos, PDF text, or `.ppt` legacy files. For PDFs, paste text manually.
-- Teacher accounts are currently self-registered. **School production requires verified teacher provisioning, admin approval, consent, school data protection, rate limits, account recovery, and audit logs.** Do not upload real children's records to this prototype.
-- The homework generator creates teacher-triggered tasks from AI lesson questions, not an automatic new unique 30-minute assignment every calendar day. Add Cloudflare Cron Triggers/Queues with approval policies for this.
-- No automatic 30–40 minute placement test bank, writing grading, real-time speech API, worksheet handwriting recognition, full curriculum catalog, or monthly feedback surveys yet.
-- Exam release scheduling is stored as a deadline but the UI currently shows all assigned tasks; implement release gating before high-stakes use. Score reporting covers auto-marked multiple-choice questions only. Do not use as a secure formal examination system.
-- Session schedule is recorded, but student attendance check-in is API-only (not yet wired in the UI); no iPad lock/kiosk mode. iPad locking requires school-managed device settings.
-- No cross-device sync without Cloudflare D1. Opening `index.html` locally displays the landing page, but login and live features require deployment.
+## iPad deployment — follow exactly
+1. Open Files, tap this ZIP, and let iPad extract the folder.
+2. Open your GitHub repository. Upload the **contents of the extracted folder**, keeping `index.html`, `schema.sql`, `robot-reference.jpg`, `README.md` at the repository root and `functions/api/[[path]].js` inside its nested folders. Do NOT upload just the ZIP.
+3. In Cloudflare Dashboard → Workers & Pages → Create application → **Continue to Pages** (not Workers) → Connect to Git → select the repository → use the **Pages** deployment workflow. Build command blank, output directory `/` or `.` as permitted by the dashboard. If a root-output setting is rejected, use a Pages-compatible static assets directory and move the static files there, keeping `functions/` at the project root.
+4. Create a Cloudflare **D1** database. Run the contents of `schema.sql` in its Console (run only once on an empty database).
+5. In the **Pages project** Settings → Bindings, add D1 database binding named **DB**. In Settings → Variables and Secrets, add `SESSION_SECRET` (long, random) and `OPENAI_API_KEY` as **encrypted secrets**. Never paste your key in GitHub or HTML. Optionally set `OPENAI_MODEL` to a supported model.
+6. Redeploy Pages. Test `/api/me` (a 401 without login is expected, a 503 means missing binding/secret), then register a teacher and a student test account, create a class and join with its code. Use **fictional test data only**.
+7. After verifying the app, you may retire the earlier Worker deployment to avoid confusion, but do not delete it until the Pages app is verified.
 
-## Security
-Never put API keys into `index.html`. Secrets must be configured server-side. Cloudflare Pages Functions route `/api/*` to the server. The app stores a signed session token in localStorage; for a production school app prefer secure HttpOnly cookies and CSRF defenses. Set a strict CORS and CSP policy before production. Avoid uploading student-identifiable information until the school has approved the privacy architecture.
+## Important limitations
+This is an enhanced functional **prototype**, not a finished school production service. It does NOT provide real-time spoken AI conversation, accurate robot lip sync, scanned worksheet OCR/AI marking, full PPTX media rendering, comprehensive ELL placement tests, secure formal exams, school-verified teacher accounts, or device kiosk lock. Voice output uses device browser TTS. No secrets or D1 are bundled. Real student data requires school authorization, child privacy review, role provisioning, data retention rules, rate limits, audit logs, and secure authentication hardening. Do not use this prototype with real schoolchildren's private information.
 
-## Development
-Use Wrangler Pages dev with a local D1 binding and configured secrets. Validate backend and API access after deployment. No live production account has been created or deployed by this package.
+### Debugging
+- If you see the old 'Maya AI teacher preview' page, your deployment still serves the old `index.html`. Verify Git commit, Pages project and redeploy.
+- If you see `No URLs enabled`, you are in a Worker; a Pages project has its own `*.pages.dev` URL.
+- If login shows 503, check D1 binding `DB` and `SESSION_SECRET`, then redeploy.
+- If AI fails, check `OPENAI_API_KEY`, account billing/quota, and server logs. Avoid sharing keys or tokens.
+- GitHub cannot deploy a Pages Function from a ZIP kept as a single file in the repository.
